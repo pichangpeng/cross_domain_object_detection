@@ -12,7 +12,15 @@ bin-release/
 *.air
 *.ipa
 *.apk
+*.zip
+bdd100k_images
+
 
 # Project files, i.e. `.project`, `.actionScriptProperties` and `.flexProperties`
 # should NOT be excluded as they contain compiler settings and other important
 # information for Eclipse / Flash Builder.
+
+bdd100k_images
+bdd100k_labels
+images
+labels
