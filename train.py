@@ -10,6 +10,7 @@ from torch.utils.data import DataLoader
 from torch.autograd import Variable
 from PIL import Image
 import torch
+from torch import nn
 
 from model.cycleGan import Generator
 from model.cycleGan import Discriminator
@@ -21,11 +22,11 @@ from model.datasets import ImageDataset
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--epoch', type=int, default=0, help='starting epoch')
-parser.add_argument('--n_epochs', type=int, default=100, help='number of epochs of training')
-parser.add_argument('--batchSize', type=int, default=10, help='size of the batches')
+parser.add_argument('--n_epochs', type=int, default=5, help='number of epochs of training')
+parser.add_argument('--batchSize', type=int, default=1, help='size of the batches')
 parser.add_argument('--dataroot', type=str, default='../datasets/A2B/', help='root directory of the dataset')
 parser.add_argument('--lr', type=float, default=0.0002, help='initial learning rate')
-parser.add_argument('--decay_epoch', type=int, default=50, help='epoch to start linearly decaying the learning rate to 0')
+parser.add_argument('--decay_epoch', type=int, default=5, help='epoch to start linearly decaying the learning rate to 0')
 parser.add_argument('--size', type=int, default=256, help='size of the data crop (squared assumed)')
 parser.add_argument('--input_nc', type=int, default=3, help='number of channels of input data')
 parser.add_argument('--output_nc', type=int, default=3, help='number of channels of output data')
@@ -34,8 +35,7 @@ parser.add_argument('--n_cpu', type=int, default=1, help='number of cpu threads 
 opt = parser.parse_args()
 print(opt)
 
-if torch.cuda.is_available() and not opt.cuda:
-    print("WARNING: You have a CUDA device, so you should probably run with --cuda")
+device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 ###### Definition of variables ######
 # Networks
@@ -44,11 +44,16 @@ netG_B2A = Generator(opt.output_nc, opt.input_nc)
 netD_A = Discriminator(opt.input_nc)
 netD_B = Discriminator(opt.output_nc)
 
-if opt.cuda:
-    netG_A2B.cuda()
-    netG_B2A.cuda()
-    netD_A.cuda()
-    netD_B.cuda()
+
+if torch.cuda.device_count() > 1:
+    netG_A2B=nn.DataParallel(netG_A2B)
+    netG_B2A=nn.DataParallel(netG_B2A)
+    netD_A=nn.DataParallel(netD_A)
+    netD_B=nn.DataParallel(netD_B)
+netG_A2B.to(device)
+netG_B2A.to(device)
+netD_A.to(device)
+netD_B.to(device)
 
 netG_A2B.apply(weights_init_normal)
 netG_B2A.apply(weights_init_normal)
@@ -90,7 +95,7 @@ dataloader = DataLoader(ImageDataset(opt.dataroot, transforms_=transforms_, unal
                         batch_size=opt.batchSize, shuffle=True, num_workers=opt.n_cpu)
 
 # Loss plot
-logger = Logger(opt.n_epochs, len(dataloader))
+logger = Logger(opt.n_epochs, len(dataloader),opt.batchSize,opt.size)
 ###################################
 
 ###### Training ######

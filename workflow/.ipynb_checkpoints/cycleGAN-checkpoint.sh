@@ -1,0 +1,1 @@
+python3 train.py --n_epochs 100 --batchSize 4 --size 256 --dataroot ./data/images/train --decay_epoch 50 --cuda

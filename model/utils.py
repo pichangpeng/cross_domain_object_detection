@@ -14,10 +14,12 @@ def tensor2image(tensor):
     return image.astype(np.uint8)
 
 class Logger():
-    def __init__(self, n_epochs, batches_epoch):
+    def __init__(self, n_epochs, batches_epoch,batchSize,size):
         # self.viz = Visdom()
         self.n_epochs = n_epochs
         self.batches_epoch = batches_epoch
+        self.batchSize=batchSize
+        self.size=size
         self.epoch = 1
         self.batch = 1
         self.prev_time = time.time()
@@ -25,7 +27,7 @@ class Logger():
         self.losses = {}
         self.loss_windows = {}
         self.image_windows = {}
-        self.txt=open('./output/cycleGAN.txt', 'w')
+        self.txt=open('./output/cycleGAN_%d_%d_%d.txt'%(self.n_epochs,self.batchSize,self.size), 'w')
 
 
     def log(self, losses=None, images=None):
@@ -33,7 +35,7 @@ class Logger():
         self.prev_time = time.time()
 
         sys.stdout.write('\rEpoch %03d/%03d [%04d/%04d] -- ' % (self.epoch, self.n_epochs, self.batch, self.batches_epoch))
-        self.txt.write('\rEpoch %03d/%03d [%04d/%04d] -- ' % (self.epoch, self.n_epochs, self.batch, self.batches_epoch)+"\n")
+        self.txt.write('\rEpoch %03d/%03d [%04d/%04d] -- ' % (self.epoch, self.n_epochs, self.batch, self.batches_epoch))
 
         for i, loss_name in enumerate(losses.keys()):
             if loss_name not in self.losses:
@@ -43,10 +45,10 @@ class Logger():
 
             if (i+1) == len(losses.keys()):
                 sys.stdout.write('%s: %.4f -- ' % (loss_name, self.losses[loss_name]/self.batch))
-                self.txt.write('%s: %.4f -- ' % (loss_name, self.losses[loss_name]/self.batch)+"\n")
+                self.txt.write('%s: %.4f -- ' % (loss_name, self.losses[loss_name]/self.batch))
             else:
                 sys.stdout.write('%s: %.4f | ' % (loss_name, self.losses[loss_name]/self.batch))
-                self.txt.write('%s: %.4f -- ' % (loss_name, self.losses[loss_name]/self.batch)+"\n")
+                self.txt.write('%s: %.4f | ' % (loss_name, self.losses[loss_name]/self.batch))
 
         batches_done = self.batches_epoch*(self.epoch - 1) + self.batch
         batches_left = self.batches_epoch*(self.n_epochs - self.epoch) + self.batches_epoch - self.batch 
@@ -61,7 +63,7 @@ class Logger():
         #         self.viz.image(tensor2image(tensor.data), win=self.image_windows[image_name], opts={'title':image_name})
 
         # End of epoch
-        # if (self.batch % self.batches_epoch) == 0:
+        if (self.batch % self.batches_epoch) == 0:
         #     # Plot losses
         #     for loss_name, loss in self.losses.items():
         #         if loss_name not in self.loss_windows:
@@ -77,8 +79,10 @@ class Logger():
         #     sys.stdout.write('\n')
         # else:
         #     self.batch += 1
-        self.epoch += 1
-        self.batch = 1
+            self.epoch += 1
+            self.batch=1
+        else:
+            self.batch += 1
         sys.stdout.write('\n')
 
         
