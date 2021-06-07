@@ -74,6 +74,30 @@ def move_from_to_list(list_path, img_to_dir, lab_to_dir):
     for i in tqdm(images):
          shutil.move(os.path.join(img_train_dir, i), os.path.join(img_to_dir, i))
          shutil.move(os.path.join(lab_train_dir, i[:-3] + 'json'), os.path.join(lab_to_dir, i[:-3] + 'json'))
+        
+        
+def get_car_boxes(img_dir,lab_dir):
+    filenames = os.listdir(img_dir)
+    filenames = [f[:-4] for f in filenames]
+    car_boxes_dict={}
+    for filename in tqdm(filenames):
+        with open(os.path.join(lab_dir, filename + '.json'), 'r') as f:
+            data = json.load(f)
+        boxes = []
+        labels = []
+        for obj in data['frames'][0]['objects']:
+            if obj['category'] == 'car':
+                boxes.append([obj['box2d']['x1'],obj['box2d']['y1'],obj['box2d']['x2'],obj['box2d']['y2']])
+                labels.append(1)
+        if labels is None:
+            os.remove(os.path.join(img_dir, filename + '.jpg'))
+            os.remove(os.path.join(lab_dir, filename + '.json'))
+            print("%s don't has the car"%f)
+        else:
+            car_boxes_dict[filename]={"boxes":boxes,"labels":labels}
+    json_str = json.dumps(car_boxes_dict)
+    with open(os.path.dirname(lab_dir)+'/%s.json'%lab_dir.split("/")[-1], 'w') as json_file:
+        json_file.write(json_str)
 
 
 extract_here('bdd100k_images.zip', images_folder)
@@ -116,6 +140,11 @@ move_from_to_list(os.path.join('lists', 'test_rainy.txt'), img_test_rainy_dir_to
 shutil.rmtree(images_folder)
 shutil.rmtree(labels_folder)
 
+
+get_car_boxes(img_train_clear_dir_to,lab_train_clear_dir_to)
+get_car_boxes(img_test_clear_dir_to,lab_test_clear_dir_to)
+get_car_boxes(img_train_rainy_dir_to,lab_train_rainy_dir_to)
+get_car_boxes(img_test_rainy_dir_to,lab_test_rainy_dir_to)
 
 # side = 256
 # current_data = None

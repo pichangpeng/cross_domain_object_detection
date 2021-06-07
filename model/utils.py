@@ -110,6 +110,7 @@ class ReplayBuffer():
                     to_return.append(element)
         return Variable(torch.cat(to_return))
 
+    
 class LambdaLR():
     def __init__(self, n_epochs, offset, decay_start_epoch):
         assert ((n_epochs - decay_start_epoch) > 0), "Decay must start before the training session ends!"
