@@ -1,0 +1,1 @@
+python3 cycleGAN_test.py --batchSize 1 --x_size 720 --y_size 1280 --dataroot ./data/images/test --generator_A2B output/weight/netG_A2B_100_4_256_1.pth --cuda

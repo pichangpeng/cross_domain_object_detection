@@ -23,9 +23,9 @@ class Generator(nn.Module):
         super(Generator, self).__init__()
 
         # Initial convolution block       
-        model = [   nn.ReflectionPad2d(3),
+        model = [   nn.ReflectionPad2d(3), #Pads the input tensor using the reflection of the input boundary
                     nn.Conv2d(input_nc, 64, 7),
-                    nn.InstanceNorm2d(64),
+                    nn.InstanceNorm2d(64),#Instance Normalization
                     nn.ReLU(inplace=True) ]
 
         # Downsampling

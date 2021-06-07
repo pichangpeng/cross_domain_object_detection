@@ -14,7 +14,7 @@ def tensor2image(tensor):
     return image.astype(np.uint8)
 
 class Logger():
-    def __init__(self, n_epochs, batches_epoch,batchSize,size):
+    def __init__(self, n_epochs, batches_epoch,batchSize,size,random_crop):
         # self.viz = Visdom()
         self.n_epochs = n_epochs
         self.batches_epoch = batches_epoch
@@ -27,7 +27,7 @@ class Logger():
         self.losses = {}
         self.loss_windows = {}
         self.image_windows = {}
-        self.txt=open('./output/cycleGAN_%d_%d_%d.txt'%(self.n_epochs,self.batchSize,self.size), 'w')
+        self.txt=open('./output/log/cycleGAN_%d_%d_%d_%d.txt'%(self.n_epochs,self.batchSize,self.size,random_crop), 'w')
 
 
     def log(self, losses=None, images=None):
@@ -36,7 +36,10 @@ class Logger():
 
         sys.stdout.write('\rEpoch %03d/%03d [%04d/%04d] -- ' % (self.epoch, self.n_epochs, self.batch, self.batches_epoch))
         self.txt.write('\rEpoch %03d/%03d [%04d/%04d] -- ' % (self.epoch, self.n_epochs, self.batch, self.batches_epoch))
-
+        
+        batches_done = self.batches_epoch*(self.epoch - 1) + self.batch
+        batches_left = self.batches_epoch*(self.n_epochs - self.epoch) + self.batches_epoch - self.batch 
+        
         for i, loss_name in enumerate(losses.keys()):
             if loss_name not in self.losses:
                 self.losses[loss_name] = losses[loss_name]
@@ -44,14 +47,12 @@ class Logger():
                 self.losses[loss_name] += losses[loss_name]
 
             if (i+1) == len(losses.keys()):
-                sys.stdout.write('%s: %.4f -- ' % (loss_name, self.losses[loss_name]/self.batch))
-                self.txt.write('%s: %.4f -- ' % (loss_name, self.losses[loss_name]/self.batch))
+                sys.stdout.write('%s: %.4f -- ' % (loss_name, self.losses[loss_name]/batches_done))
+                self.txt.write('%s: %.4f -- ' % (loss_name, self.losses[loss_name]/batches_done))
             else:
-                sys.stdout.write('%s: %.4f | ' % (loss_name, self.losses[loss_name]/self.batch))
-                self.txt.write('%s: %.4f | ' % (loss_name, self.losses[loss_name]/self.batch))
+                sys.stdout.write('%s: %.4f | ' % (loss_name, self.losses[loss_name]/batches_done))
+                self.txt.write('%s: %.4f | ' % (loss_name, self.losses[loss_name]/batches_done))
 
-        batches_done = self.batches_epoch*(self.epoch - 1) + self.batch
-        batches_left = self.batches_epoch*(self.n_epochs - self.epoch) + self.batches_epoch - self.batch 
         sys.stdout.write('ETA: %s' % (datetime.timedelta(seconds=batches_left*self.mean_period/batches_done)))
         self.txt.write('ETA: %s' % (datetime.timedelta(seconds=batches_left*self.mean_period/batches_done))+"\n")
 
