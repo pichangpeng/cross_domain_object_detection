@@ -5,7 +5,7 @@ import itertools
 import sys,os
 sys.path.append(os.path.dirname(__file__) + os.sep + '../')
 
-import torchvision.transforms as transforms
+
 from torch.utils.data import DataLoader
 from torch.autograd import Variable
 from PIL import Image

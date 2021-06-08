@@ -87,9 +87,18 @@ def get_car_boxes(img_dir,lab_dir):
         labels = []
         for obj in data['frames'][0]['objects']:
             if obj['category'] == 'car':
-                boxes.append([obj['box2d']['x1'],obj['box2d']['y1'],obj['box2d']['x2'],obj['box2d']['y2']])
-                labels.append(1)
-        if labels is None:
+                if (obj['box2d']['x1'] is None) or (obj['box2d']['x2'] is None) or (obj['box2d']['y1'] is None) or (obj['box2d']['y2'] is None):
+                    os.remove(os.path.join(img_dir, filename + '.jpg'))
+                    os.remove(os.path.join(lab_dir, filename + '.json'))
+                    break
+                elif obj['box2d']['x1']>=obj['box2d']['x2'] or obj['box2d']['y1']>=obj['box2d']['y2']:
+                    os.remove(os.path.join(img_dir, filename + '.jpg'))
+                    os.remove(os.path.join(lab_dir, filename + '.json'))
+                    break
+                else:
+                    boxes.append([obj['box2d']['x1'],obj['box2d']['y1'],obj['box2d']['x2'],obj['box2d']['y2']])
+                    labels.append(1)
+        if labels==[]:
             os.remove(os.path.join(img_dir, filename + '.jpg'))
             os.remove(os.path.join(lab_dir, filename + '.json'))
             print("%s don't has the car"%f)

@@ -16,7 +16,7 @@ from model.datasets import ImageDataset
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--batchSize', type=int, default=1, help='size of the batches')
-parser.add_argument('--dataroot', type=str, default='datasets/horse2zebra/', help='root directory of the dataset')
+parser.add_argument('--dataroot', type=str, default='./data/images/test', help='root directory of the dataset')
 parser.add_argument('--input_nc', type=int, default=3, help='number of channels of input data')
 parser.add_argument('--output_nc', type=int, default=3, help='number of channels of output data')
 parser.add_argument('--x_size', type=int, default=720, help='x size of the data ')
@@ -67,23 +67,19 @@ dataloader = DataLoader(ImageDataset(opt.dataroot, transforms_=transforms_),
 if not os.path.exists('output/images/cycleGAN/%d_%d_%d_%s'%(opt.batchSize,opt.x_size,opt.y_size,opt.generator_A2B.split('_')[-1][0])):
     os.makedirs('output/images/cycleGAN/%d_%d_%d_%s/real_A/'%(opt.batchSize,opt.x_size,opt.y_size,opt.generator_A2B.split('_')[-1][0]))
     os.makedirs('output/images/cycleGAN/%d_%d_%d_%s/fake_B/'%(opt.batchSize,opt.x_size,opt.y_size,opt.generator_A2B.split('_')[-1][0]))
-# if not os.path.exists('output/image/rainy_%d_%d_%d_%d'%(opt.n_epochs,opt.batchSize,opt.x_size,opt.y_size)):
-#     os.makedirs('output/image/rainy_%d_%d_%d_%d'%(opt.n_epochs,opt.batchSize,opt.x_size,opt.y_size))
 
 for i, batch in enumerate(dataloader):
     # Set model input
+    real_A_name=batch['clear_name'][0]
     real_A_orig=Variable(input_A.copy_(batch['clear_orig']))
     real_A = Variable(input_B.copy_(batch['clear']))
-#     real_B = Variable(input_B.copy_(batch['rainy']))
 
     # Generate output
     fake_B = 0.5*(netG_A2B(real_A).data + 1.0)
-#     fake_A = 0.5*(netG_B2A(real_B).data + 1.0)
 
     # Save image files
-#     save_image(fake_A, 'output/image/clear_%d_%d_%d_%d/%04d.png' % (opt.n_epochs,opt.batchSize,opt.x_size,opt.y_size,i+1))
-    save_image(real_A_orig.data, 'output/images/cycleGAN/%d_%d_%d_%s/real_A/%04d.png' % (opt.batchSize,opt.x_size,opt.y_size,opt.generator_A2B.split('_')[-1][0],i+1))
-    save_image(fake_B, 'output/images/cycleGAN/%d_%d_%d_%s/fake_B/%04d.png' % (opt.batchSize,opt.x_size,opt.y_size,opt.generator_A2B.split('_')[-1][0],i+1))
+    save_image(real_A_orig.data, 'output/images/cycleGAN/%d_%d_%d_%s/real_A/%s.png' % (opt.batchSize,opt.x_size,opt.y_size,opt.generator_A2B.split('_')[-1][0],real_A_name))
+    save_image(fake_B, 'output/images/cycleGAN/%d_%d_%d_%s/fake_B/%s.png' % (opt.batchSize,opt.x_size,opt.y_size,opt.generator_A2B.split('_')[-1][0],real_A_name))
 
     sys.stdout.write('\rGenerated images %04d of %04d' % (i+1, len(dataloader)))
 
