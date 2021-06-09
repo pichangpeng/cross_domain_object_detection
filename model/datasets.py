@@ -24,10 +24,10 @@ class ImageDataset(Dataset):
         with open(os.path.join(self.labl_root, 'rainy.json'), 'r') as f:
             self.item_B_lab = json.load(f)
 
-
     def __getitem__(self, index):
         filename_A=self.files_A[index % len(self.files_A)]
         item_A=Image.open(filename_A)
+        print(item_A)
         item_A_orig=self.transform1(item_A)
         item_A_trans = self.transform2(item_A)
         
@@ -36,15 +36,19 @@ class ImageDataset(Dataset):
         else:
             filename_B=self.files_B[index % len(self.files_B)]
         item_B = self.transform2(Image.open(filename_B))
+        # return {"clear_name":filename_A.split("/")[-1][:-4],"clear_orig":item_A_orig,'clear': item_A_trans}
         return {"clear_name":filename_A.split("/")[-1][:-4],"clear_orig":item_A_orig,'clear': item_A_trans, 'rainy': item_B,"clear_label":self.item_A_lab[filename_A.split("/")[-1][:-4]],"rainy_label":self.item_B_lab[filename_B.split("/")[-1][:-4]]}
 
     def __len__(self):
         return len(self.files_A)
-    
-    
-# a=ImageDataset("../data/images/train")
+
+
+# transforms_ = [ transforms.ToTensor(),
+#                 transforms.Normalize((0.5,0.5,0.5), (0.5,0.5,0.5)) ]
+# a=ImageDataset("./data/images/train",transforms_ =transforms_ )
 # b=a.__getitem__(1)
-# print(b)
+# print(b["clear_orig"])
+# print(b['clear'])
 
 class ImageDatasetGan(Dataset):
     def __init__(self,imagetRoot,labelRoot,transforms_=None):

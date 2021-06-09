@@ -17,16 +17,16 @@ parser.add_argument('--ssd_weight', type=str, default='output/weight/ssd.pth', h
 opt = parser.parse_args()
 print(opt)
 
-class BatchCollator:
-    def __call__(self, batch):
-        transposed_batch = list(zip(*batch))
-        images = default_collate(transposed_batch[0])
-        name = default_collate(transposed_batch[2])
-        list_targets = transposed_batch[1]
-        targets = Container(
-            {key: default_collate([d[key] for d in list_targets]) for key in list_targets[0]}
-        )
-        return images, targets, img_ids
+# class BatchCollator:
+#     def __call__(self, batch):
+#         transposed_batch = list(zip(*batch))
+#         images = default_collate(transposed_batch[0])
+#         name = default_collate(transposed_batch[2])
+#         list_targets = transposed_batch[1]
+#         targets = Container(
+#             {key: default_collate([d[key] for d in list_targets]) for key in list_targets[0]}
+#         )
+#         return images, targets, img_ids
 
     
 ssd=fasterrcnn_resnet50_fpn(num_classes=2,trainable_backbone_layers=5,pretrained_backbone=False)

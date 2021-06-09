@@ -25,8 +25,7 @@ if torch.cuda.device_count() > 1:
     model=nn.DataParallel(ssd)
 ssd.to(device)
 
-transforms_ = [ transforms.ToTensor(),
-                transforms.Normalize((0.5,0.5,0.5), (0.5,0.5,0.5))]
+transforms_ = [ transforms.ToTensor()]
 dataloader = DataLoader(ImageDatasetGan(opt.imagesRoot,opt.labelsRoot, transforms_=transforms_),
                         batch_size=opt.batchSize, shuffle=False)
 
