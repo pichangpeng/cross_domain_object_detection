@@ -42,12 +42,10 @@ if args.set_class_iou is not None:
     specific_iou_flagged = True
 
 # make sure that the cwd() is the location of the python script (so that every path makes sense)
-os.chdir(os.path.dirname(os.path.abspath(__file__)))
-
-GT_PATH = os.path.join(os.getcwd(), 'input', 'ground-truth')
-DR_PATH = os.path.join(os.getcwd(), 'input', 'detection-results')
+GT_PATH = os.path.join('../output/metric/ssd', 'ground_truth')
+DR_PATH = os.path.join('../output/metric/ssd', 'detection_results')
 # if there are no images then no animation can be shown
-IMG_PATH = os.path.join(os.getcwd(), 'input', 'images-optional')
+IMG_PATH = os.path.join('../output/metric/ssd', 'images_optional')
 if os.path.exists(IMG_PATH): 
     for dirpath, dirnames, files in os.walk(IMG_PATH):
         if not files:
@@ -336,7 +334,7 @@ def draw_plot_func(dictionary, n_classes, window_title, plot_title, x_label, out
 TEMP_FILES_PATH = ".temp_files"
 if not os.path.exists(TEMP_FILES_PATH): # if it doesn't exist already
     os.makedirs(TEMP_FILES_PATH)
-output_files_path = "output"
+output_files_path = "Output"
 if os.path.exists(output_files_path): # if it exist already
     # reset the output directory
     shutil.rmtree(output_files_path)

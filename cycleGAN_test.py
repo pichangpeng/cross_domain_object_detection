@@ -12,7 +12,7 @@ import torch
 from torch import nn
 
 from model.cycleGan import Generator
-from model.datasets import ImageDataset
+from model.datasets import ImageDatasetGAN
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--batchSize', type=int, default=1, help='size of the batches')
@@ -51,22 +51,22 @@ netG_A2B.eval()
 
 # Inputs & targets memory allocation
 Tensor = torch.cuda.FloatTensor if opt.cuda else torch.Tensor
-input_A = Tensor(opt.batchSize, opt.input_nc, opt.x_size, opt.y_size)
-input_B = Tensor(opt.batchSize, opt.output_nc, opt.x_size, opt.y_size)
+input_A = Tensor(opt.batchSize, opt.input_nc, opt.h, opt.w)
+input_B = Tensor(opt.batchSize, opt.output_nc, opt.h, opt.w)
 
 # Dataset loader
 transforms_ = [ transforms.ToTensor(),
                 transforms.Normalize((0.5,0.5,0.5), (0.5,0.5,0.5)) ]
-dataloader = DataLoader(ImageDataset(opt.dataroot, transforms_=transforms_), 
-                        batch_size=opt.batchSize, shuffle=False, num_workers=opt.n_cpu)
+dataloader = DataLoader(ImageDatasetGAN(opt.dataroot, transforms_=transforms_), 
+                        batch_size=opt.batchSize, shuffle=False, num_workers=opt.n_cpu,drop_last=True)
 ###################################
 
 ###### Testing######
 
 # Create output dirs if they don't exist
-if not os.path.exists('output/images/cycleGAN/%d_%d_%d_%s'%(opt.batchSize,opt.x_size,opt.y_size,opt.generator_A2B.split('_')[-1][0])):
-    os.makedirs('output/images/cycleGAN/%d_%d_%d_%s/real_A/'%(opt.batchSize,opt.x_size,opt.y_size,opt.generator_A2B.split('_')[-1][0]))
-    os.makedirs('output/images/cycleGAN/%d_%d_%d_%s/fake_B/'%(opt.batchSize,opt.x_size,opt.y_size,opt.generator_A2B.split('_')[-1][0]))
+if not os.path.exists('output/images/cycleGAN/%d_%d_%d_%s'%(opt.batchSize,opt.h,opt.w,opt.generator_A2B.split('_')[-1][0])):
+    os.makedirs('output/images/cycleGAN/%d_%d_%d_%s/real_A/'%(opt.batchSize,opt.h,opt.w,opt.generator_A2B.split('_')[-1][0]))
+    os.makedirs('output/images/cycleGAN/%d_%d_%d_%s/fake_B/'%(opt.batchSize,opt.h,opt.w,opt.generator_A2B.split('_')[-1][0]))
 
 for i, batch in enumerate(dataloader):
     # Set model input
@@ -78,8 +78,8 @@ for i, batch in enumerate(dataloader):
     fake_B = 0.5*(netG_A2B(real_A).data + 1.0)
 
     # Save image files
-    save_image(real_A_orig.data, 'output/images/cycleGAN/%d_%d_%d_%s/real_A/%s.jpg' % (opt.batchSize,opt.x_size,opt.y_size,opt.generator_A2B.split('_')[-1][0],real_A_name))
-    save_image(fake_B, 'output/images/cycleGAN/%d_%d_%d_%s/fake_B/%s.jpg' % (opt.batchSize,opt.x_size,opt.y_size,opt.generator_A2B.split('_')[-1][0],real_A_name))
+    save_image(real_A_orig.data, 'output/images/cycleGAN/%d_%d_%d_%s/real_A/%s.jpg' % (opt.batchSize,opt.h,opt.w,opt.generator_A2B.split('_')[-1][0],real_A_name))
+    save_image(fake_B, 'output/images/cycleGAN/%d_%d_%d_%s/fake_B/%s.jpg' % (opt.batchSize,opt.h,opt.w,opt.generator_A2B.split('_')[-1][0],real_A_name))
 
     sys.stdout.write('\rGenerated images %04d of %04d' % (i+1, len(dataloader)))
 

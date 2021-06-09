@@ -8,6 +8,7 @@ sys.path.append(os.path.dirname(__file__) + os.sep + '../')
 
 from torch.utils.data import DataLoader
 from torch.autograd import Variable
+import torchvision.transforms as transforms
 from PIL import Image
 import torch
 from torch import nn
@@ -18,7 +19,7 @@ from model.utils import ReplayBuffer
 from model.utils import LambdaLR
 from model.utils import Logger
 from model.utils import weights_init_normal
-from model.datasets import ImageDataset
+from model.datasets import ImageDatasetGAN
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--epoch', type=int, default=0, help='starting epoch')
@@ -98,8 +99,8 @@ else:
                     transforms.RandomHorizontalFlip(),
                     transforms.ToTensor(),
                     transforms.Normalize((0.5,0.5,0.5), (0.5,0.5,0.5)) ]
-dataloader = DataLoader(ImageDataset(opt.dataroot, transforms_=transforms_, unaligned=True), 
-                        batch_size=opt.batchSize, shuffle=True, num_workers=opt.n_cpu)
+dataloader = DataLoader(ImageDatasetGAN(opt.dataroot, transforms_=transforms_, unaligned=True), 
+                        batch_size=opt.batchSize, shuffle=True, num_workers=opt.n_cpu,drop_last=True)
 
 # Loss plot
 logger = Logger(opt.n_epochs, len(dataloader),opt.batchSize,opt.size,1 if opt.random_crop else 0)
@@ -183,10 +184,6 @@ for epoch in range(opt.epoch, opt.n_epochs):
 
         optimizer_D_B.step()
         ###################################
-        # loss={'loss_G': loss_G, 'loss_G_identity': (loss_identity_A + loss_identity_B), 'loss_G_GAN': (loss_GAN_A2B + loss_GAN_B2A),
-        #             'loss_G_cycle': (loss_cycle_ABA + loss_cycle_BAB), 'loss_D': (loss_D_A + loss_D_B)}
-        # print(loss)
-        # Progress report (http://localhost:8097)
         logger.log({'loss_G': loss_G, 'loss_G_identity': (loss_identity_A + loss_identity_B), 'loss_G_GAN': (loss_GAN_A2B + loss_GAN_B2A),
                     'loss_G_cycle': (loss_cycle_ABA + loss_cycle_BAB), 'loss_D': (loss_D_A + loss_D_B)}, 
                     images={'real_A': real_A, 'real_B': real_B, 'fake_A': fake_A, 'fake_B': fake_B})
@@ -202,3 +199,4 @@ for epoch in range(opt.epoch, opt.n_epochs):
     torch.save(netD_A.state_dict(), 'output/weight/netD_A_%d_%d_%d_%d.pth'%(opt.n_epochs,opt.batchSize,opt.size,1 if opt.random_crop else 0))
     torch.save(netD_B.state_dict(), 'output/weight/netD_B_%d_%d_%d_%d.pth'%(opt.n_epochs,opt.batchSize,opt.size,1 if opt.random_crop else 0))
 ###################################
+logger.close()

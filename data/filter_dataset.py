@@ -103,16 +103,21 @@ def get_car_boxes(img_dir,lab_dir):
             os.remove(os.path.join(lab_dir, filename + '.json'))
             print("%s don't has the car"%f)
         else:
+            for i,obj in enumerate(data['frames'][0]['objects']):
+                if obj['category'] == 'car' and "box2d" in obj:
+                    if not ((obj['box2d']['x1'] is None) or (obj['box2d']['x2'] is None) or (obj['box2d']['y1'] is None) or (obj['box2d']['y2'] is None)) and not (obj['box2d']['x1']>=obj['box2d']['x2'] or obj['box2d']['y1']>=obj['box2d']['y2']):
+                        boxes.append([obj['box2d']['x1'],obj['box2d']['y1'],obj['box2d']['x2'],obj['box2d']['y2']])
+                        labels.append(0)
             car_boxes_dict[filename]={"boxes":boxes,"labels":labels}
     json_str = json.dumps(car_boxes_dict)
     with open(os.path.dirname(lab_dir)+'/%s.json'%lab_dir.split("/")[-1], 'w') as json_file:
         json_file.write(json_str)
 
 
-extract_here('bdd100k_images.zip', images_folder)
-extract_here('bdd100k_labels.zip', labels_folder)
+# extract_here('bdd100k_images.zip', images_folder)
+# extract_here('bdd100k_labels.zip', labels_folder)
 
-get_sample(img_train_dir,lab_train_dir)
+# get_sample(img_train_dir,lab_train_dir)
 
 
 img_train_clear_dir_to = os.path.join('images', 'train', 'clear')
@@ -128,26 +133,26 @@ lab_test_clear_dir_to = os.path.join('labels', 'test', 'clear')
 lab_test_rainy_dir_to = os.path.join('labels', 'test', 'rainy')
 
 
-os.makedirs(img_train_clear_dir_to)
-os.makedirs(img_train_rainy_dir_to)
-os.makedirs(img_test_clear_dir_to)
-os.makedirs(img_test_rainy_dir_to)
+# os.makedirs(img_train_clear_dir_to)
+# os.makedirs(img_train_rainy_dir_to)
+# os.makedirs(img_test_clear_dir_to)
+# os.makedirs(img_test_rainy_dir_to)
 
-os.makedirs(lab_train_clear_dir_to)
-os.makedirs(lab_train_rainy_dir_to)
-os.makedirs(lab_test_clear_dir_to)
-os.makedirs(lab_test_rainy_dir_to)
-
-
-move_from_to_list(os.path.join('lists', 'train_clear.txt'), img_train_clear_dir_to, lab_train_clear_dir_to)
-move_from_to_list(os.path.join('lists', 'train_rainy.txt'), img_train_rainy_dir_to, lab_train_rainy_dir_to)
-
-move_from_to_list(os.path.join('lists', 'test_clear.txt'), img_test_clear_dir_to, lab_test_clear_dir_to)
-move_from_to_list(os.path.join('lists', 'test_rainy.txt'), img_test_rainy_dir_to, lab_test_rainy_dir_to)
+# os.makedirs(lab_train_clear_dir_to)
+# os.makedirs(lab_train_rainy_dir_to)
+# os.makedirs(lab_test_clear_dir_to)
+# os.makedirs(lab_test_rainy_dir_to)
 
 
-shutil.rmtree(images_folder)
-shutil.rmtree(labels_folder)
+# move_from_to_list(os.path.join('lists', 'train_clear.txt'), img_train_clear_dir_to, lab_train_clear_dir_to)
+# move_from_to_list(os.path.join('lists', 'train_rainy.txt'), img_train_rainy_dir_to, lab_train_rainy_dir_to)
+
+# move_from_to_list(os.path.join('lists', 'test_clear.txt'), img_test_clear_dir_to, lab_test_clear_dir_to)
+# move_from_to_list(os.path.join('lists', 'test_rainy.txt'), img_test_rainy_dir_to, lab_test_rainy_dir_to)
+
+
+# shutil.rmtree(images_folder)
+# shutil.rmtree(labels_folder)
 
 
 get_car_boxes(img_train_clear_dir_to,lab_train_clear_dir_to)

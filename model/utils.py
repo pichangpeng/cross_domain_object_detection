@@ -22,6 +22,7 @@ class Logger():
         self.size=size
         self.epoch = 1
         self.batch = 1
+        self.start_time=time.time()
         self.prev_time = time.time()
         self.mean_period = 0
         self.losses = {}
@@ -85,6 +86,11 @@ class Logger():
         else:
             self.batch += 1
         sys.stdout.write('\n')
+        
+    def close(self):
+        sys.stdout.write("all used time:%s"%datetime.timedelta(seconds=time.time()-self.start_time))
+        self.txt.write("all used time:%s"%datetime.timedelta(seconds=time.time()-self.start_time))
+        self.txt.close()
 
         
 
