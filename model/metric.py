@@ -19,7 +19,9 @@ parser.add_argument('-q', '--quiet', help="minimalistic console output.", action
 parser.add_argument('-i', '--ignore', nargs='+', type=str, help="ignore a list of classes.")
 # argparse receiving list of classes with specific IoU (e.g., python main.py --set-class-iou person 0.7)
 parser.add_argument('--set-class-iou', nargs='+', type=str, help="set IoU for a specific class.")
+parser.add_argument('--model_name',  type=str, help="the name of the model")
 args = parser.parse_args()
+
 
 '''
     0,0 ------> x (width)
@@ -42,10 +44,10 @@ if args.set_class_iou is not None:
     specific_iou_flagged = True
 
 # make sure that the cwd() is the location of the python script (so that every path makes sense)
-GT_PATH = os.path.join('../output/metric/ssd', 'ground_truth')
-DR_PATH = os.path.join('../output/metric/ssd', 'detection_results')
+GT_PATH = os.path.join('../output/metric/%s'%args.model_name, 'ground_truth')
+DR_PATH = os.path.join('../output/metric/%s'%args.model_name, 'detection_results')
 # if there are no images then no animation can be shown
-IMG_PATH = os.path.join('../output/metric/ssd', 'images_optional')
+IMG_PATH = os.path.join('../output/metric/%s'%args.model_name, 'images_optional')
 if os.path.exists(IMG_PATH): 
     for dirpath, dirnames, files in os.walk(IMG_PATH):
         if not files:
@@ -334,7 +336,7 @@ def draw_plot_func(dictionary, n_classes, window_title, plot_title, x_label, out
 TEMP_FILES_PATH = ".temp_files"
 if not os.path.exists(TEMP_FILES_PATH): # if it doesn't exist already
     os.makedirs(TEMP_FILES_PATH)
-output_files_path = "Output"
+output_files_path = "../output/metricResult/%s"%args.model_name
 if os.path.exists(output_files_path): # if it exist already
     # reset the output directory
     shutil.rmtree(output_files_path)

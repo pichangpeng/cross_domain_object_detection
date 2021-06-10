@@ -8,6 +8,7 @@ from torch.utils.data import Dataset
 from torch.utils.data import DataLoader
 from PIL import Image
 import torchvision.transforms as transforms
+from torch.utils.data.dataloader import default_collate
 
 class ImageDatasetGAN(Dataset):
     def __init__(self, root, transforms_=None, unaligned=False):
@@ -63,11 +64,38 @@ class ImageDatasetSSD(Dataset):
         item_A_orig=self.transform1(item_A)
         item_A_trans=torch.FloatTensor(self.transform2(item_A))
         target=self.lab[filename.split("/")[-1][:-4]]
+#         boxes=[]
+#         for i in target["boxes"]:
+#             boxes.append([i[0]/1280,i[1]/720,i[2]/1280,i[3]/720])
+#         boxes=torch.FloatTensor(boxes)
         boxes=torch.FloatTensor(target["boxes"])
         labels=torch.tensor(target["labels"])
-        return {"images":item_A_trans,"images_orig":item_A_orig,"targets":{"boxes":boxes,"labels":labels},"name":filename}
+        return {"images":item_A_trans,"images_orig":item_A_orig,"targets":{"boxes":boxes,"labels":labels},"name":filename.split("/")[-1][:-4]}
     
     def __len__(self):
         return len(self.files)
 
+class collate_fn_SSD():
+    def __init__(self,device):
+        self.device=device
+    def __call__(self,batch):
+        images=[]
+        images_orig=[]
+        targets=[]
+        name=[]
+        for data in batch:
+            images.append(data["images"].to(self.device))
+            images_orig.append(data["images_orig"].to(self.device))
+            targets.append({"boxes":data["targets"]["boxes"].to(self.device),"labels":data["targets"]["labels"].to(self.device)})
+            name.append(data["name"])
+        return {"images":images,"images_orig":images_orig,"targets":targets,"name":name}
+    
+# transforms_ = [ transforms.ToTensor()]
+# a=ImageDatasetSSD('output/images/cycleGAN/1_720_1280_1/fake_B','data/labels/test/clear.json',transforms_ =transforms_ )
+# b=a.__getitem__(1)
+# print(b)
+# dataloader = DataLoader(a,batch_size=2, shuffle=False,drop_last=True,collate_fn=collate_fn_SSD())
+# for i, batch in enumerate(dataloader):
+#     print(batch)
+#     break
     

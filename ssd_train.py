@@ -1,5 +1,5 @@
 from torchvision.models.detection import fasterrcnn_resnet50_fpn
-from model.datasets import ImageDatasetSSD
+from model.datasets import ImageDatasetSSD,collate_fn_SSD
 
 import argparse
 import torch
@@ -30,7 +30,7 @@ ssd.to(device)
 
 transforms_ = [ transforms.ToTensor()]
 dataloader = DataLoader(ImageDatasetSSD(opt.imagesRoot,opt.labelsRoot, transforms_=transforms_),
-                        batch_size=opt.batchSize, shuffle=False,drop_last=True)
+                        batch_size=opt.batchSize, shuffle=False,drop_last=True,collate_fn=collate_fn_SSD(device))
 
 txt=open('./output/log/ssd.txt', 'w')
 batches_epoch=len(dataloader)
@@ -42,10 +42,7 @@ for epoch in range(opt.epoch, opt.n_epochs):
     for i, batch in enumerate(dataloader):
         mean_period += (time.time() - prev_time)
         prev_time = time.time()
-        boxes=batch["targets"]["boxes"].squeeze(0).to(device)
-        labels=batch["targets"]["labels"].squeeze(0).to(device)
-#         print(labels)
-        output = ssd([batch["images"].squeeze(0).to(device)], [{"boxes":boxes,"labels":labels}])
+        output=ssd(batch["images"], batch["targets"])
         
         result={}
         for name in output:
@@ -59,7 +56,6 @@ for epoch in range(opt.epoch, opt.n_epochs):
         txt.write('\rEpoch %03d/%03d [%04d/%04d] --' % (epoch+1, opt.n_epochs, i+1, batches_epoch))
         txt.write(str(result))
         txt.write('ETA: %s' % (datetime.timedelta(seconds=batches_left*mean_period/batches_done))+"\n")
-        
     torch.save(ssd.state_dict(), 'output/weight/ssd.pth')
 end_time=time.time()
 print("all used time:%s"%datetime.timedelta(seconds=end_time-start_time))

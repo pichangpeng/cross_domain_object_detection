@@ -103,11 +103,11 @@ def get_car_boxes(img_dir,lab_dir):
             os.remove(os.path.join(lab_dir, filename + '.json'))
             print("%s don't has the car"%f)
         else:
-            for i,obj in enumerate(data['frames'][0]['objects']):
-                if obj['category'] == 'car' and "box2d" in obj:
-                    if not ((obj['box2d']['x1'] is None) or (obj['box2d']['x2'] is None) or (obj['box2d']['y1'] is None) or (obj['box2d']['y2'] is None)) and not (obj['box2d']['x1']>=obj['box2d']['x2'] or obj['box2d']['y1']>=obj['box2d']['y2']):
-                        boxes.append([obj['box2d']['x1'],obj['box2d']['y1'],obj['box2d']['x2'],obj['box2d']['y2']])
-                        labels.append(0)
+#             for i,obj in enumerate(data['frames'][0]['objects']):
+#                 if obj['category'] == 'car' and "box2d" in obj:
+#                     if not ((obj['box2d']['x1'] is None) or (obj['box2d']['x2'] is None) or (obj['box2d']['y1'] is None) or (obj['box2d']['y2'] is None)) and not (obj['box2d']['x1']>=obj['box2d']['x2'] or obj['box2d']['y1']>=obj['box2d']['y2']):
+#                         boxes.append([obj['box2d']['x1'],obj['box2d']['y1'],obj['box2d']['x2'],obj['box2d']['y2']])
+#                         labels.append(0)
             car_boxes_dict[filename]={"boxes":boxes,"labels":labels}
     json_str = json.dumps(car_boxes_dict)
     with open(os.path.dirname(lab_dir)+'/%s.json'%lab_dir.split("/")[-1], 'w') as json_file:
