@@ -1,4 +1,5 @@
 from torchvision.models.detection import fasterrcnn_resnet50_fpn
+from torchvision.models.detection.anchor_utils import AnchorGenerator
 from model.datasets import ImageDatasetSSD,collate_fn_SSD
 
 import argparse
@@ -22,7 +23,12 @@ parser.add_argument('--labelsRoot', type=str, default='data/labels/test/clear.js
 opt = parser.parse_args()
 print(opt)
 
-ssd=fasterrcnn_resnet50_fpn(num_classes=2,trainable_backbone_layers=5)
+anchor_sizes = ((32),(64,), (128,), (256,), (512,))
+aspect_ratios = ((0.5, 1.0, 2.0),) * len(anchor_sizes)
+rpn_anchor_generator = AnchorGenerator(anchor_sizes, aspect_ratios)
+
+ssd=fasterrcnn_resnet50_fpn(num_classes=2,trainable_backbone_layers=5,rpn_nms_thresh=0.7, box_detections_per_img=100,rpn_anchor_generator=rpn_anchor_generator)
+
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 if torch.cuda.device_count() > 1:
     model=nn.DataParallel(ssd)
