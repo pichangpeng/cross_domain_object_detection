@@ -64,10 +64,6 @@ class ImageDatasetSSD(Dataset):
         item_A_orig=self.transform1(item_A)
         item_A_trans=torch.FloatTensor(self.transform2(item_A))
         target=self.lab[filename.split("/")[-1][:-4]]
-#         boxes=[]
-#         for i in target["boxes"]:
-#             boxes.append([i[0]/1280,i[1]/720,i[2]/1280,i[3]/720])
-#         boxes=torch.FloatTensor(boxes)
         boxes=torch.FloatTensor(target["boxes"])
         labels=torch.tensor(target["labels"])
         return {"images":item_A_trans,"images_orig":item_A_orig,"targets":{"boxes":boxes,"labels":labels},"name":filename.split("/")[-1][:-4]}

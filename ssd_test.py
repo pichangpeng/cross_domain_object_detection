@@ -17,15 +17,13 @@ parser.add_argument('--batchSize', type=int, default=1, help='size of the batche
 parser.add_argument('--imagesRoot', type=str, default='data/images/test/rainy', help='root directory of the images')
 parser.add_argument('--labelsRoot', type=str, default='data/labels/test/rainy.json', help='root directory of the labels')
 parser.add_argument('--ssd_weight', type=str, default='output/weight/ssd.pth', help='root directory of weight')
+parser.add_argument('--confient_thresh', type=float, default=0.5, help='the thresh of confient')
 opt = parser.parse_args()
 print(opt)
 
-# anchor_sizes = ((64,), (128,), (256,), (512,))
-# aspect_ratios = ((0.5, 1.0, 2.0),) * len(anchor_sizes)
-# rpn_anchor_generator = AnchorGenerator(anchor_sizes, aspect_ratios)
-ssd=fasterrcnn_resnet50_fpn(num_classes=2,trainable_backbone_layers=5,rpn_nms_thresh=0.7,box_detections_per_img=100)
+ssd=fasterrcnn_resnet50_fpn(num_classes=2,trainable_backbone_layers=5)
 
-device = torch.device("cuda:1" if torch.cuda.is_available() else "cpu")
+device = torch.device("cuda:2" if torch.cuda.is_available() else "cpu")
 if torch.cuda.device_count() > 1:
     model=nn.DataParallel(ssd)
 ssd.to(device)
@@ -60,6 +58,7 @@ for i, batch in tqdm(enumerate(dataloader),desc='Processing',total=len(dataloade
         txt1.close()
 
         for k in range(len(pred_boxes)):
-            txt2.write("car %.4f %.2f %.2f %.2f %.2f"%(scores[k],pred_boxes[k][0],pred_boxes[k][1],pred_boxes[k][2],pred_boxes[k][3])+"\n")
+            if scores[k]>=opt.confient_thresh:
+                txt2.write("car %.4f %.2f %.2f %.2f %.2f"%(scores[k],pred_boxes[k][0],pred_boxes[k][1],pred_boxes[k][2],pred_boxes[k][3])+"\n")
         txt2.close()
         

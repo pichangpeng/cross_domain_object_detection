@@ -1,4 +1,4 @@
-from torchvision.models.detection import fasterrcnn_resnet50_fpn
+from torchvision.models.detection import fasterrcnn_resnet50_fpn,retinanet_resnet50_fpn
 from torchvision.models.detection.anchor_utils import AnchorGenerator
 from model.datasets import ImageDatasetSSD,collate_fn_SSD
 
@@ -20,19 +20,18 @@ parser.add_argument('--n_epochs', type=int, default=5, help='number of epochs of
 parser.add_argument('--batchSize', type=int, default=1, help='size of the batches')
 parser.add_argument('--imagesRoot', type=str, default='output/images/cycleGAN/1_720_1280_1/fake_B', help='root directory of the images')
 parser.add_argument('--labelsRoot', type=str, default='data/labels/test/clear.json', help='root directory of the labels')
+parser.add_argument('--lr', type=float, default=0.0002, help='initial learning rate')
 opt = parser.parse_args()
 print(opt)
 
-anchor_sizes = ((32),(64,), (128,), (256,), (512,))
-aspect_ratios = ((0.5, 1.0, 2.0),) * len(anchor_sizes)
-rpn_anchor_generator = AnchorGenerator(anchor_sizes, aspect_ratios)
-
-ssd=fasterrcnn_resnet50_fpn(num_classes=2,trainable_backbone_layers=5,rpn_nms_thresh=0.7, box_detections_per_img=100,rpn_anchor_generator=rpn_anchor_generator)
+ssd=fasterrcnn_resnet50_fpn(num_classes=2,trainable_backbone_layers=5)
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 if torch.cuda.device_count() > 1:
     model=nn.DataParallel(ssd)
 ssd.to(device)
+optimizer_ssd= torch.optim.Adam(ssd.parameters(), lr=opt.lr, betas=(0.5, 0.999))
+
 
 transforms_ = [ transforms.ToTensor()]
 dataloader = DataLoader(ImageDatasetSSD(opt.imagesRoot,opt.labelsRoot, transforms_=transforms_),
@@ -46,9 +45,17 @@ prev_time = time.time()
 
 for epoch in range(opt.epoch, opt.n_epochs):
     for i, batch in enumerate(dataloader):
+        optimizer_ssd.zero_grad()
         mean_period += (time.time() - prev_time)
         prev_time = time.time()
+        
+        optimizer_ssd.zero_grad()
         output=ssd(batch["images"], batch["targets"])
+        loss=0
+        for loss_name in output:
+            loss+=output[loss_name]
+        loss.backward()
+        optimizer_ssd.step()
         
         result={}
         for name in output:

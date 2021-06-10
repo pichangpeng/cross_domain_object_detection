@@ -1,1 +1,1 @@
-python3 ssd_test.py --batchSize 3  --imagesRoot data/images/test/rainy --labelsRoot data/labels/test/rainy.json --ssd_weight output/weight/ssd.pth
+python3 ssd_test.py --batchSize 3  --imagesRoot data/images/test/rainy --labelsRoot data/labels/test/rainy.json --ssd_weight output/weight/ssd.pth --confient_thresh 0.5
