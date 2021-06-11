@@ -1,3 +1,6 @@
+import sys,os
+sys.path.append(os.path.dirname(__file__) + os.sep + '../')
+
 from torchvision.models.detection import fasterrcnn_resnet50_fpn
 from torchvision.models.detection.anchor_utils import AnchorGenerator
 from model.datasets import ImageDatasetFasterRcnn,collate_fn_fasterRcnn

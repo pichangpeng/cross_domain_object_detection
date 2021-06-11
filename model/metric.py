@@ -9,6 +9,8 @@ import math
 
 import numpy as np
 
+sys.path.append(os.path.dirname(__file__) + os.sep + '../')
+
 MINOVERLAP = 0.5 # default value 
 
 parser = argparse.ArgumentParser()
@@ -44,10 +46,10 @@ if args.set_class_iou is not None:
     specific_iou_flagged = True
 
 # make sure that the cwd() is the location of the python script (so that every path makes sense)
-GT_PATH = os.path.join('../output/metric/%s'%args.model_name, 'ground_truth')
-DR_PATH = os.path.join('../output/metric/%s'%args.model_name, 'detection_results')
+GT_PATH = os.path.join('./output/metric/%s'%args.model_name, 'ground_truth')
+DR_PATH = os.path.join('./output/metric/%s'%args.model_name, 'detection_results')
 # if there are no images then no animation can be shown
-IMG_PATH = os.path.join('../output/metric/%s'%args.model_name, 'images_optional')
+IMG_PATH = os.path.join('./output/metric/%s'%args.model_name, 'images_optional')
 if os.path.exists(IMG_PATH): 
     for dirpath, dirnames, files in os.walk(IMG_PATH):
         if not files:
@@ -336,7 +338,7 @@ def draw_plot_func(dictionary, n_classes, window_title, plot_title, x_label, out
 TEMP_FILES_PATH = ".temp_files"
 if not os.path.exists(TEMP_FILES_PATH): # if it doesn't exist already
     os.makedirs(TEMP_FILES_PATH)
-output_files_path = "../output/metricResult/%s"%args.model_name
+output_files_path = "./output/metricResult/%s"%args.model_name
 if os.path.exists(output_files_path): # if it exist already
     # reset the output directory
     shutil.rmtree(output_files_path)
@@ -644,7 +646,7 @@ with open(output_files_path + "/output.txt", 'w') as output_file:
                 cv2.rectangle(img_cumulative,(bb[0],bb[1]),(bb[2],bb[3]),color,2)
                 cv2.putText(img_cumulative, class_name, (bb[0],bb[1] - 5), font, 0.6, color, 1, cv2.LINE_AA)
                 # show image
-                cv2.imshow("Animation", img)
+                plt.imshow(img)
                 cv2.waitKey(20) # show for 20 ms
                 # save image to output
                 output_img_path = output_files_path + "/images/detections_one_by_one/" + class_name + "_detection" + str(idx) + ".jpg"

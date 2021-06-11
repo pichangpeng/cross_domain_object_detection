@@ -3,7 +3,7 @@
 import argparse
 import sys
 import os
-
+sys.path.append(os.path.dirname(__file__) + os.sep + '../')
 import torchvision.transforms as transforms
 from torchvision.utils import save_image
 from torch.utils.data import DataLoader
@@ -16,7 +16,7 @@ from model.datasets import ImageDatasetGAN
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--batchSize', type=int, default=1, help='size of the batches')
-parser.add_argument('--dataroot', type=str, default='./data/images/test', help='root directory of the dataset')
+parser.add_argument('--dataroot', type=str, default='./data/images/train', help='root directory of the dataset')
 parser.add_argument('--input_nc', type=int, default=3, help='number of channels of input data')
 parser.add_argument('--output_nc', type=int, default=3, help='number of channels of output data')
 parser.add_argument('--h', type=int, default=720, help='height of the image ')

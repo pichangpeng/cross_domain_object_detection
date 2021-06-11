@@ -1,2 +1,1 @@
-cd model
-python3 main/metric.py --model_name fasterRcnn
+python3 model/metric.py --model_name fasterRcnn

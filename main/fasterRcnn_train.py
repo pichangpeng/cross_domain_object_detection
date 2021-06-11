@@ -1,3 +1,7 @@
+import sys,os
+sys.path.append(os.path.dirname(__file__) + os.sep + '../')
+
+
 from torchvision.models.detection import fasterrcnn_resnet50_fpn
 from torchvision.models.detection.anchor_utils import AnchorGenerator
 from model.datasets import ImageDatasetFasterRcnn,collate_fn_fasterRcnn
@@ -16,7 +20,7 @@ parser.add_argument('--epoch', type=int, default=0, help='starting epoch')
 parser.add_argument('--n_epochs', type=int, default=5, help='number of epochs of training')
 parser.add_argument('--batchSize', type=int, default=1, help='size of the batches')
 parser.add_argument('--imagesRoot', type=str, default='output/images/cycleGAN/1_720_1280_1/fake_night', help='root directory of the images')
-parser.add_argument('--labelsRoot', type=str, default='data/labels/test/day.json', help='root directory of the labels')
+parser.add_argument('--labelsRoot', type=str, default='data/labels/train/day.json', help='root directory of the labels')
 parser.add_argument('--lr', type=float, default=0.0002, help='initial learning rate')
 opt = parser.parse_args()
 print(opt)
@@ -27,7 +31,7 @@ device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 if torch.cuda.device_count() > 1:
     model=nn.DataParallel(fasterRcnn)
 fasterRcnn.to(device)
-optimizer_fasterRcnn= torch.optim.Adam(fasterRcnn.parameters(), lr=opt.lr, betas=(0.5, 0.999))
+optimizer_fasterRcnn= torch.optim.Adam(fasterRcnn.parameters(), lr=opt.lr)
 
 
 transforms_ = [ transforms.ToTensor()]
@@ -35,6 +39,7 @@ dataloader = DataLoader(ImageDatasetFasterRcnn(opt.imagesRoot,opt.labelsRoot, tr
                         batch_size=opt.batchSize, shuffle=False,drop_last=True,collate_fn=collate_fn_fasterRcnn(device))
 
 txt=open('./output/log/fasterRcnn.txt', 'w')
+
 batches_epoch=len(dataloader)
 mean_period=0
 start_time=time.time()
