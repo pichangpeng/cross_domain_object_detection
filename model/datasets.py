@@ -15,14 +15,14 @@ class ImageDatasetGAN(Dataset):
         self.transform1 = transforms.Compose([transforms.ToTensor()])
         self.transform2 = transforms.Compose(transforms_)
         self.unaligned = unaligned
-        self.files_A = sorted(glob.glob(os.path.join(root, 'clear' ) + '/*.*'))
-        self.files_B = sorted(glob.glob(os.path.join(root, 'rainy' ) + '/*.*'))
+        self.files_A = sorted(glob.glob(os.path.join(root, 'day' ) + '/*.*'))
+        self.files_B = sorted(glob.glob(os.path.join(root, 'night' ) + '/*.*'))
 #         root_split=root.split("/")
 #         root_split[2]="labels"
 #         self.labl_root="/".join(root_split)
-#         with open(os.path.join(self.labl_root, 'clear.json'), 'r') as f:
+#         with open(os.path.join(self.labl_root, 'day.json'), 'r') as f:
 #             self.item_A_lab = json.load(f)
-#         with open(os.path.join(self.labl_root, 'rainy.json'), 'r') as f:
+#         with open(os.path.join(self.labl_root, 'night.json'), 'r') as f:
 #             self.item_B_lab = json.load(f)
 
     def __getitem__(self, index):
@@ -36,8 +36,7 @@ class ImageDatasetGAN(Dataset):
         else:
             filename_B=self.files_B[index % len(self.files_B)]
         item_B = self.transform2(Image.open(filename_B))
-        return {'clear': item_A_trans, 'rainy': item_B,"clear_name":filename_A.split("/")[-1][:-4],"clear_orig":item_A_orig}
-#         return {"clear_name":filename_A.split("/")[-1][:-4],"clear_orig":item_A_orig,'clear': item_A_trans, 'rainy': item_B,"clear_label":self.item_A_lab[filename_A.split("/")[-1][:-4]],"rainy_label":self.item_B_lab[filename_B.split("/")[-1][:-4]]}
+        return {'day': item_A_trans, 'night': item_B,"day_name":filename_A.split("/")[-1][:-4],"day_orig":item_A_orig}
 
     def __len__(self):
         return len(self.files_A)
@@ -47,10 +46,10 @@ class ImageDatasetGAN(Dataset):
 #                 transforms.Normalize((0.5,0.5,0.5), (0.5,0.5,0.5)) ]
 # a=ImageDataset("./data/images/train",transforms_ =transforms_ )
 # b=a.__getitem__(1)
-# print(b["clear_orig"])
-# print(b['clear'])
+# print(b["day_orig"])
+# print(b['day'])
 
-class ImageDatasetSSD(Dataset):
+class ImageDatasetFasterRcnn(Dataset):
     def __init__(self,imagetRoot,labelRoot,transforms_=None):
         self.transform1 = transforms.Compose([transforms.ToTensor()])
         self.transform2 = transforms.Compose(transforms_)
@@ -71,7 +70,7 @@ class ImageDatasetSSD(Dataset):
     def __len__(self):
         return len(self.files)
 
-class collate_fn_SSD():
+class collate_fn_fasterRcnn():
     def __init__(self,device):
         self.device=device
     def __call__(self,batch):
@@ -87,7 +86,7 @@ class collate_fn_SSD():
         return {"images":images,"images_orig":images_orig,"targets":targets,"name":name}
     
 # transforms_ = [ transforms.ToTensor()]
-# a=ImageDatasetSSD('output/images/cycleGAN/1_720_1280_1/fake_B','data/labels/test/clear.json',transforms_ =transforms_ )
+# a=ImageDatasetSSD('output/images/cycleGAN/1_720_1280_1/fake_B','data/labels/test/day.json',transforms_ =transforms_ )
 # b=a.__getitem__(1)
 # print(b)
 # dataloader = DataLoader(a,batch_size=2, shuffle=False,drop_last=True,collate_fn=collate_fn_SSD())

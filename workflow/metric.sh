@@ -1,2 +1,2 @@
 cd model
-python3 metric.py --model_name ssd
+python3 main/metric.py --model_name fasterRcnn

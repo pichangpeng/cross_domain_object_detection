@@ -39,26 +39,26 @@ def write2txt(txtPath,datas):
 def get_sample(img_train_dir,lab_train_dir):
     filenames = os.listdir(img_train_dir)
     filenames = [f[:-4] for f in filenames]
-    clear=[]
-    rainy=[]
-    clear_id=1
-    rainy_id=1
+    day=[]
+    night=[]
+    day_id=1
+    night_id=1
     for filename in filenames:
-        if clear_id>2000 and rainy_id>2000:
+        if day_id>3000 and night_id>3000:
             break
         with open(os.path.join(lab_train_dir, filename + '.json'), 'r') as f:
             data = json.load(f)
-            if data["attributes"]["timeofday"]=="daytime" and data["attributes"]["weather"]=="clear" and clear_id<=2000:
-                clear.append(filename+".jpg")
-                clear_id+=1
-            elif data["attributes"]["timeofday"]=="night" and data["attributes"]["weather"]=="rainy" and rainy_id<=2000:
-                rainy.append(filename+".jpg")
-                rainy_id+=1
-    print("get clear day sample:{},get rainy day sample:{}".format(clear_id-1,rainy_id-1))
-    write2txt("./lists/train_clear.txt",clear[:1000])
-    write2txt("./lists/test_clear.txt",clear[1000:])
-    write2txt("./lists/train_rainy.txt",rainy[:1000])
-    write2txt("./lists/test_rainy.txt",rainy[1000:])
+            if data["attributes"]["timeofday"]=="daytime" and data["attributes"]["weather"]=="clear" and day_id<=3000:
+                day.append(filename+".jpg")
+                day_id+=1
+            elif data["attributes"]["timeofday"]=="night" and data["attributes"]["weather"]=="clear" and night_id<=3000:
+                night.append(filename+".jpg")
+                night_id+=1
+    print("get day day sample:{},get night day sample:{}".format(day_id-1,night_id-1))
+    write2txt("./lists/train_day.txt",day[:1500])
+    write2txt("./lists/test_day.txt",day[1500:])
+    write2txt("./lists/train_night.txt",night[:1500])
+    write2txt("./lists/test_night.txt",night[1500:])
     print("Done !")
 
 
@@ -72,8 +72,8 @@ def move_from_to_list(list_path, img_to_dir, lab_to_dir):
     images = [i.strip() for i in images]
 
     for i in tqdm(images):
-         shutil.move(os.path.join(img_train_dir, i), os.path.join(img_to_dir, i))
-         shutil.move(os.path.join(lab_train_dir, i[:-3] + 'json'), os.path.join(lab_to_dir, i[:-3] + 'json'))
+        shutil.move(os.path.join(img_train_dir, i), os.path.join(img_to_dir, i))
+        shutil.move(os.path.join(lab_train_dir, i[:-4] + '.json'), os.path.join(lab_to_dir, i[:-4] + '.json'))
         
         
 def get_car_boxes(img_dir,lab_dir):
@@ -95,70 +95,73 @@ def get_car_boxes(img_dir,lab_dir):
                     os.remove(os.path.join(img_dir, filename + '.jpg'))
                     os.remove(os.path.join(lab_dir, filename + '.json'))
                     break
+                elif obj['box2d']['x2']-obj['box2d']['x1']<=20 or obj['box2d']['y2']-obj['box2d']['y1']<=20:
+                    break
                 else:
                     boxes.append([obj['box2d']['x1'],obj['box2d']['y1'],obj['box2d']['x2'],obj['box2d']['y2']])
                     labels.append(1)
         if labels==[]:
-            os.remove(os.path.join(img_dir, filename + '.jpg'))
-            os.remove(os.path.join(lab_dir, filename + '.json'))
+            try:
+                os.remove(os.path.join(img_dir, filename + '.jpg'))
+            except:
+                pass
+            try:
+                os.remove(os.path.join(lab_dir, filename + '.json'))
+            except:
+                pass
             print("%s don't has the car"%f)
         else:
-#             for i,obj in enumerate(data['frames'][0]['objects']):
-#                 if obj['category'] == 'car' and "box2d" in obj:
-#                     if not ((obj['box2d']['x1'] is None) or (obj['box2d']['x2'] is None) or (obj['box2d']['y1'] is None) or (obj['box2d']['y2'] is None)) and not (obj['box2d']['x1']>=obj['box2d']['x2'] or obj['box2d']['y1']>=obj['box2d']['y2']):
-#                         boxes.append([obj['box2d']['x1'],obj['box2d']['y1'],obj['box2d']['x2'],obj['box2d']['y2']])
-#                         labels.append(0)
             car_boxes_dict[filename]={"boxes":boxes,"labels":labels}
     json_str = json.dumps(car_boxes_dict)
     with open(os.path.dirname(lab_dir)+'/%s.json'%lab_dir.split("/")[-1], 'w') as json_file:
         json_file.write(json_str)
 
 
-# extract_here('bdd100k_images.zip', images_folder)
-# extract_here('bdd100k_labels.zip', labels_folder)
+extract_here('bdd100k_images.zip', images_folder)
+extract_here('bdd100k_labels.zip', labels_folder)
 
-# get_sample(img_train_dir,lab_train_dir)
-
-
-img_train_clear_dir_to = os.path.join('images', 'train', 'clear')
-img_train_rainy_dir_to = os.path.join('images', 'train', 'rainy')
-
-img_test_clear_dir_to = os.path.join('images', 'test', 'clear')
-img_test_rainy_dir_to = os.path.join('images', 'test', 'rainy')
-
-lab_train_clear_dir_to = os.path.join('labels', 'train', 'clear')
-lab_train_rainy_dir_to = os.path.join('labels', 'train', 'rainy')
-
-lab_test_clear_dir_to = os.path.join('labels', 'test', 'clear')
-lab_test_rainy_dir_to = os.path.join('labels', 'test', 'rainy')
+get_sample(img_train_dir,lab_train_dir)
 
 
-# os.makedirs(img_train_clear_dir_to)
-# os.makedirs(img_train_rainy_dir_to)
-# os.makedirs(img_test_clear_dir_to)
-# os.makedirs(img_test_rainy_dir_to)
+img_train_day_dir_to = os.path.join('images', 'train', 'day')
+img_train_night_dir_to = os.path.join('images', 'train', 'night')
 
-# os.makedirs(lab_train_clear_dir_to)
-# os.makedirs(lab_train_rainy_dir_to)
-# os.makedirs(lab_test_clear_dir_to)
-# os.makedirs(lab_test_rainy_dir_to)
+img_test_day_dir_to = os.path.join('images', 'test', 'day')
+img_test_night_dir_to = os.path.join('images', 'test', 'night')
 
+lab_train_day_dir_to = os.path.join('labels', 'train', 'day')
+lab_train_night_dir_to = os.path.join('labels', 'train', 'night')
 
-# move_from_to_list(os.path.join('lists', 'train_clear.txt'), img_train_clear_dir_to, lab_train_clear_dir_to)
-# move_from_to_list(os.path.join('lists', 'train_rainy.txt'), img_train_rainy_dir_to, lab_train_rainy_dir_to)
-
-# move_from_to_list(os.path.join('lists', 'test_clear.txt'), img_test_clear_dir_to, lab_test_clear_dir_to)
-# move_from_to_list(os.path.join('lists', 'test_rainy.txt'), img_test_rainy_dir_to, lab_test_rainy_dir_to)
+lab_test_day_dir_to = os.path.join('labels', 'test', 'day')
+lab_test_night_dir_to = os.path.join('labels', 'test', 'night')
 
 
-# shutil.rmtree(images_folder)
-# shutil.rmtree(labels_folder)
+os.makedirs(img_train_day_dir_to)
+os.makedirs(img_train_night_dir_to)
+os.makedirs(img_test_day_dir_to)
+os.makedirs(img_test_night_dir_to)
+
+os.makedirs(lab_train_day_dir_to)
+os.makedirs(lab_train_night_dir_to)
+os.makedirs(lab_test_day_dir_to)
+os.makedirs(lab_test_night_dir_to)
 
 
-get_car_boxes(img_train_clear_dir_to,lab_train_clear_dir_to)
-get_car_boxes(img_test_clear_dir_to,lab_test_clear_dir_to)
-get_car_boxes(img_train_rainy_dir_to,lab_train_rainy_dir_to)
-get_car_boxes(img_test_rainy_dir_to,lab_test_rainy_dir_to)
+move_from_to_list(os.path.join('lists', 'train_day.txt'), img_train_day_dir_to, lab_train_day_dir_to)
+move_from_to_list(os.path.join('lists', 'train_night.txt'), img_train_night_dir_to, lab_train_night_dir_to)
+
+move_from_to_list(os.path.join('lists', 'test_day.txt'), img_test_day_dir_to, lab_test_day_dir_to)
+move_from_to_list(os.path.join('lists', 'test_night.txt'), img_test_night_dir_to, lab_test_night_dir_to)
+
+
+shutil.rmtree(images_folder)
+shutil.rmtree(labels_folder)
+
+
+get_car_boxes(img_train_day_dir_to,lab_train_day_dir_to)
+get_car_boxes(img_test_day_dir_to,lab_test_day_dir_to)
+get_car_boxes(img_train_night_dir_to,lab_train_night_dir_to)
+get_car_boxes(img_test_night_dir_to,lab_test_night_dir_to)
 
 # side = 256
 # current_data = None
@@ -353,7 +356,7 @@ get_car_boxes(img_test_rainy_dir_to,lab_test_rainy_dir_to)
 
 
 
-# square_and_shrink(img_train_clear_dir_to, lab_train_clear_dir_to)
-# square_and_shrink(img_train_rainy_dir_to, lab_train_rainy_dir_to)
-# square_and_shrink(img_test_clear_dir_to, lab_test_clear_dir_to)
-# square_and_shrink(img_test_rainy_dir_to, lab_test_rainy_dir_to)
+# square_and_shrink(img_train_day_dir_to, lab_train_day_dir_to)
+# square_and_shrink(img_train_night_dir_to, lab_train_night_dir_to)
+# square_and_shrink(img_test_day_dir_to, lab_test_day_dir_to)
+# square_and_shrink(img_test_night_dir_to, lab_test_night_dir_to)
