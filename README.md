@@ -44,7 +44,7 @@
    ````
    bash workflow/fasterRcnn_train.sh
    ````
-   > fasterRcnn较cycleGan轻量，故使用1280\*720的大小输入，具体参数可通过**workflow/fasterRcnn_train.sh**调试，实验记录可见**output/log/fasterRcnn_"训练集名"_"实验批次".txt**
+   > fasterRcnn较cycleGan轻量，故使用1280\*720的大小输入，具体参数可通过**workflow/fasterRcnn_train.sh**调试，实验记录可见**output/log/fasterRcnn_训练集名_实验批次.txt**
 2. 测试fasterRcnn模型
    ````
    bash workflow/fasterRcnn_test.sh
