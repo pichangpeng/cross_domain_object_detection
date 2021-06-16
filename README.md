@@ -15,7 +15,7 @@
 
 ## 实验
 实验分为4项：
-1. 数据预处理，过滤具有标准对象car的图片，其中时间段为daytime和night各3000张，分别划分训练集和测试集，各1500张；
+1. 数据预处理，过滤具有目标对象car的图片，其中时间段为daytime和night各3000张，分别划分训练集和测试集，各1500张；
    
    ![](./image/daytime.jpg "daytime") ![](./image/night.jpg "night") 
 2. 实现cycleGan模型，以$day_{train}$为源域，$night_{train}$为目标域，对$day_{train}$进行风格迁移生成$fakeNight_{train}$。由于风格迁移并不改变其内容位置信息，故其对应的标注信息与$day_{train}$一致；
