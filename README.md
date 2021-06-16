@@ -14,20 +14,49 @@
 > 本项实验选择的标注对象为car，以car为过滤条件，选择6000张包含car对象的图片，其中3000张为daytime时间段，另3000张为night时间段，以1500张图片为一个集合，将数据集划分为$day_{train}$、$day_{test}$、$night_{train}$、$night_{test}$四个数据集。
 
 ## 实验
-实验分为3项：
-1. 实现cycleGan模型，以$day_{train}$为源域，$night_{train}$为目标域，对$day_{train}$进行风格迁移生成$fakeNight_{train}$。由于分割迁移并不改变其内容位置信息，故其对应的标注信息与$day_{train}$一致；
-2. 实现fasterRcnn模型，划分5个不同训练集，分别为：$day_{train}$、$day_{train}+fakeNight_{train}$、$day_{train}+night_{train}$、$fakeNight_{train}$、$night_{train}$，每个训练集重复训练10个模型，一共50个模型。测试集分为$day_{test}+night_{test}$、$night_{test}$，利用训练好的模型对测试集进行测试，指标为$mAP$；
-3. 实验效果评估与展示；
+实验分为4项：
+1. 数据预处理，过滤具有目标对象car的图片，其中时间段为daytime和night各3000张，分别划分训练集和测试集，各1500张；
+   
+   ![](./image/daytime.jpg "daytime") ![](./image/night.jpg "night") 
+2. 实现cycleGan模型，以$day_{train}$为源域，$night_{train}$为目标域，对$day_{train}$进行风格迁移生成$fakeNight_{train}$。由于风格迁移并不改变其内容位置信息，故其对应的标注信息与$day_{train}$一致；
+   ![](./image/real_day.jpg "real_day") ![](./image/fake_night.jpg "fake_night") 
+3. 实现fasterRcnn模型，划分5个不同训练集，分别为：$day_{train}$、$day_{train}+fakeNight_{train}$、$day_{train}+night_{train}$、$fakeNight_{train}$、$night_{train}$，每个训练集重复训练10个模型，一共50个模型。测试集分为$day_{test}+night_{test}$、$night_{test}$，利用训练好的模型对测试集进行测试，指标为$mAP$；
+4. 实验效果评估与展示；
    
 ### cycleGan
-1. 训练cycleGan
-````
-bash workflow/cycleGAN_train.sh
-````
-> 由于cycleGan模型是一个高密集参数训练模型，较一般的深度模型而言，GPU的使用量高1～2个数量级，故对原始1280\*720的图片采用随机裁减到256\*256，加快训练速度。训练记录可见**output/log/cycleGAN_100_20_256_1.txt**
-2. 生成$fakeNight_{train}$
-````
-bash workflow/cycleAN_test.sh
-````
-> 在测试阶段，由于速度较快，故图片以1280\*720的大小输入，这样输出的图片大小与输入一致，原数据的标注信息也可直接使用。**此阶段图片能以训练阶段不同的大小输入，是由于cycleGan模型采用全卷积**；
+1. 数据预处理
+   ````
+   cd data
+   python3 filter_dataset.py
+   ````
+2. 训练cycleGan
+   ````
+   bash workflow/cycleGAN_train.sh
+   ````
+   > 由于cycleGan模型是一个高密集参数训练模型，较一般的深度模型而言，GPU的使用量高1～2个数量级，故对原始1280\*720的图片采用随机裁减到256\*256，加快训练速度。训练记录可见**output/log/cycleGAN_100_20_256_1.txt**
+3. 生成$fakeNight_{train}$
+   ````
+   bash workflow/cycleAN_test.sh
+   ````
+   > 在测试阶段，由于速度较快，故图片以1280\*720的大小输入，这样输出的图片大小与输入一致，原数据的标注信息也可直接使用。**此阶段图片能以训练阶段不同的大小输入，是由于cycleGan模型采用全卷积**；
+### fasterRcnn
+1. 训练fasterRcnn模型
+   ````
+   bash workflow/fasterRcnn_train.sh
+   ````
+   > fasterRcnn较cycleGan轻量，故使用1280\*720的大小输入，具体参数可通过**workflow/fasterRcnn_train.sh**调试，实验记录可见**output/log/fasterRcnn_训练集名_实验批次.txt**
+2. 测试fasterRcnn模型
+   ````
+   bash workflow/fasterRcnn_test.sh
+   ````
+   
+### 实验效果评估与展示
+1. mAP测评
+   ````
+   bash workflow/metric.sh
+   ````
+2. 实验结果对比
+   
+   
+
 
