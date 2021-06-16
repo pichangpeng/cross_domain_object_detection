@@ -28,7 +28,7 @@ print(opt)
 
 fasterRcnn=fasterrcnn_resnet50_fpn(num_classes=2,trainable_backbone_layers=5)
 
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+device = torch.device("cuda:3" if torch.cuda.is_available() else "cpu")
 if torch.cuda.device_count() > 1:
     model=nn.DataParallel(fasterRcnn)
 fasterRcnn.to(device)
