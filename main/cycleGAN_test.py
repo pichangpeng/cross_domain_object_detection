@@ -78,7 +78,7 @@ for i, batch in enumerate(dataloader):
     fake_B = 0.5*(netG_A2B(real_A).data + 1.0)
 
     # Save image files
-    save_image(real_A_orig.data, 'output/images/cycleGAN/%d_%d_%d_%s/real_day/%s.jpg' % (opt.batchSize,opt.h,opt.w,opt.generator_A2B.split('_')[-1][0],real_A_name))
+    save_image(0.5*(real_A_orig.data+1.0), 'output/images/cycleGAN/%d_%d_%d_%s/real_day/%s.jpg' % (opt.batchSize,opt.h,opt.w,opt.generator_A2B.split('_')[-1][0],real_A_name))
     save_image(fake_B, 'output/images/cycleGAN/%d_%d_%d_%s/fake_night/%s.jpg' % (opt.batchSize,opt.h,opt.w,opt.generator_A2B.split('_')[-1][0],real_A_name))
 
     sys.stdout.write('\rGenerated images %04d of %04d' % (i+1, len(dataloader)))

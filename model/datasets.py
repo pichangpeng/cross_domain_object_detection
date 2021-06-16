@@ -23,15 +23,16 @@ class collate_fn_GAN():
         for data in batch:
             day.append(data["day"].to(self.device))
             day_orig.append(data["day_orig"].to(self.device))
-            targets.append({"boxes":data["targets"]["boxes"].to(self.device),"labels":data["targets"]["labels"].to(self.device)})
             day_name.append(data["day_name"])
             night.append(data["night"])
+            if "targets" in data:
+                targets.append({"boxes":data["targets"]["boxes"].to(self.device),"labels":data["targets"]["labels"].to(self.device)})
         return {"day":day,"day_orig":day_orig,"targets":targets,"day_name":day_name,"night":night}
     
 
 class ImageDatasetGAN(Dataset):
     def __init__(self, imagetRoot,labelRoot=None, transforms_=None, unaligned=False):
-        self.transform1 = transforms.Compose([transforms.ToTensor()])
+        self.transform1 = transforms.Compose([transforms.ToTensor(),transforms.Normalize((0.5,0.5,0.5), (0.5,0.5,0.5))])
         self.transform2 = transforms.Compose(transforms_)
         self.unaligned = unaligned
         self.files_A = sorted(glob.glob(os.path.join(imagetRoot, 'day' ) + '/*.*'))
