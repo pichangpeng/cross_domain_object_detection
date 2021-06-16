@@ -6,7 +6,7 @@
 >该项实验首先通过对训练集的图像进行风格迁移，利用风格迁移后的图像进行训练，以求提高模型泛化性能。
 
 ## 数据集
-利用公开数据集[BDD100k](https://bair.berkeley.edu/blog/2018/05/30/bdd/)，由于数据集需通过国外网站下载，速度较慢，故提供[百度云盘下载](https://pan.baidu.com/s/1QqpkOAlsx75YMiBLJGnohw)，密码为：bhnu；该数据集图片大小为1280*720pixels，包含一天不同时间段的汽车驾驶路况图片，并且每张图片包括如下几个属性：
+利用公开数据集[BDD100k](https://bair.berkeley.edu/blog/2018/05/30/bdd/)，由于数据集需通过国外网站下载，速度较慢，故提供[百度云盘下载](https://pan.baidu.com/s/1QqpkOAlsx75YMiBLJGnohw)，密码为：bhnu；该数据集图片大小为1280\*720pixels，包含一天不同时间段的汽车驾驶路况图片，并且每张图片包括如下几个属性：
 * 标注：bus,traffic light,traffic sign,person,bike,truck,motor,car,train,rider
 * 时间段：daytime,night,dawn/dusk
 * 天气：rainy,snowy,clear,overcast,partly cloudy,foggy
@@ -20,4 +20,14 @@
 3. 实验效果评估与展示；
    
 ### cycleGan
+1. 训练cycleGan
+````
+bash workflow/cycleGAN_train.sh
+````
+> 由于cycleGan模型是一个高密集参数训练模型，较一般的深度模型而言，GPU的使用量高1～2个数量级，故对原始1280\*720的图片采用随机裁减到256\*256，加快训练速度。训练记录可见**output/log/cycleGAN_100_20_256_1.txt**
+2. 生成$fakeNight_{train}$
+````
+bash workflow/cycleAN_test.sh
+````
+> 在测试阶段，由于速度较快，故图片以1280\*720的大小输入，这样输出的图片大小与输入一致，原数据的标注信息也可直接使用。**此阶段图片能以训练阶段不同的大小输入，是由于cycleGan模型采用全卷积**；
 
