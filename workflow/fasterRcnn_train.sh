@@ -17,7 +17,7 @@
 
 # for a in {5..6}
 # do
-#        python3 main/fasterRcnn_train.py --n_epochs 50 --batchSize 6  --experiment_name fakenNight --imagesRoot output/images/cycleGAN/1_720_1280_1/fake_night --labelsRoot data/labels/train/day.json --lr 0.000002 --n_experiment $a
+#        python3 main/fasterRcnn_train.py --n_epochs 50 --batchSize 6  --experiment_name fakeNight --imagesRoot output/images/cycleGAN/1_720_1280_1/fake_night --labelsRoot data/labels/train/day.json --lr 0.000002 --n_experiment $a
 # done
 
 
