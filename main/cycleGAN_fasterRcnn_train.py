@@ -34,10 +34,11 @@ parser.add_argument('--input_nc', type=int, default=3, help='number of channels 
 parser.add_argument('--output_nc', type=int, default=3, help='number of channels of output data')
 parser.add_argument('--cuda', action='store_true', help='use GPU computation')
 parser.add_argument('--n_cpu', type=int, default=1, help='number of cpu threads to use during batch generation')
+parser.add_argument('--random_crop', type=bool, default=False, help='True if random crop on origin image,False if first resize then random crop ')
 opt = parser.parse_args()
 print(opt)
 
-device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+device = torch.device("cuda:2" if torch.cuda.is_available() else "cpu")
 
 ###### Definition of variables ######
 # Networks
@@ -49,11 +50,11 @@ fasterRcnn=fasterrcnn_resnet50_fpn(num_classes=2,trainable_backbone_layers=5)
 
 
 if torch.cuda.device_count() > 1:
-    netG_A2B=nn.DataParallel(netG_A2B)
-    netG_B2A=nn.DataParallel(netG_B2A)
-    netD_A=nn.DataParallel(netD_A)
-    netD_B=nn.DataParallel(netD_B)
-    fasterRcnn=nn.DataParallel(fasterRcnn)
+    netG_A2B=nn.DataParallel(netG_A2B,device_ids=[2,3,1])
+    netG_B2A=nn.DataParallel(netG_B2A,device_ids=[2,3,1])
+    netD_A=nn.DataParallel(netD_A,device_ids=[2,3,1])
+    netD_B=nn.DataParallel(netD_B,device_ids=[2,3,1])
+    fasterRcnn=nn.DataParallel(fasterRcnn,device_ids=[2,3,1])
 netG_A2B.to(device)
 netG_B2A.to(device)
 netD_A.to(device)
@@ -71,22 +72,22 @@ criterion_cycle = torch.nn.L1Loss()
 criterion_identity = torch.nn.L1Loss()
 
 # Optimizers & LR schedulers
-optimizer_G = torch.optim.Adam(itertools.chain(netG_A2B.parameters(), netG_B2A.parameters()),
+optimizer_G_fasterRcnn = torch.optim.Adam(itertools.chain(netG_A2B.parameters(), netG_B2A.parameters(),fasterRcnn.parameters()),
                                 lr=opt.lr, betas=(0.5, 0.999))
 optimizer_D_A = torch.optim.Adam(netD_A.parameters(), lr=opt.lr, betas=(0.5, 0.999))
 optimizer_D_B = torch.optim.Adam(netD_B.parameters(), lr=opt.lr, betas=(0.5, 0.999))
-optimizer_fasterRcnn= torch.optim.Adam(fasterRcnn.parameters(), lr=opt.lr)
+# optimizer_fasterRcnn= torch.optim.Adam(fasterRcnn.parameters(), lr=opt.lr)
 
-lr_scheduler_G = torch.optim.lr_scheduler.LambdaLR(optimizer_G, lr_lambda=LambdaLR(opt.n_epochs, opt.epoch, opt.decay_epoch).step)
+lr_scheduler_G_fasterRcnn = torch.optim.lr_scheduler.LambdaLR(optimizer_G_fasterRcnn, lr_lambda=LambdaLR(opt.n_epochs, opt.epoch, opt.decay_epoch).step)
 lr_scheduler_D_A = torch.optim.lr_scheduler.LambdaLR(optimizer_D_A, lr_lambda=LambdaLR(opt.n_epochs, opt.epoch, opt.decay_epoch).step)
 lr_scheduler_D_B = torch.optim.lr_scheduler.LambdaLR(optimizer_D_B, lr_lambda=LambdaLR(opt.n_epochs, opt.epoch, opt.decay_epoch).step)
 
 # Inputs & targets memory allocation
-Tensor = torch.cuda.FloatTensor if opt.cuda else torch.Tensor
+Tensor = torch.FloatTensor if opt.cuda else torch.Tensor
 input_A = Tensor(opt.batchSize, opt.input_nc, opt.size, opt.size)
 input_B = Tensor(opt.batchSize, opt.output_nc, opt.size, opt.size)
-target_real = Variable(Tensor(opt.batchSize).fill_(1.0).unsqueeze(dim=1), requires_grad=False)
-target_fake = Variable(Tensor(opt.batchSize).fill_(0.0).unsqueeze(dim=1), requires_grad=False)
+target_real = Variable(Tensor(opt.batchSize).fill_(1.0).unsqueeze(dim=1), requires_grad=False).to(device)
+target_fake = Variable(Tensor(opt.batchSize).fill_(0.0).unsqueeze(dim=1), requires_grad=False).to(device)
 
 fake_A_buffer = ReplayBuffer()
 fake_B_buffer = ReplayBuffer()
@@ -103,24 +104,24 @@ else:
                     transforms.RandomHorizontalFlip(),
                     transforms.ToTensor(),
                     transforms.Normalize((0.5,0.5,0.5), (0.5,0.5,0.5)) ]
-dataloader = DataLoader(ImageDatasetGAN(opt.dataroot, transforms_=transforms_, unaligned=True), 
-                        batch_size=opt.batchSize, shuffle=True, num_workers=opt.n_cpu,drop_last=True)
+dataloader = DataLoader(ImageDatasetGAN(opt.dataroot,opt.labelroot,transforms_=transforms_, unaligned=True), 
+                        batch_size=opt.batchSize, shuffle=True, drop_last=True,collate_fn=collate_fn_GAN(device))
 
 # Loss plot
-logger = Logger(opt.n_epochs, len(dataloader),opt.batchSize,opt.size,1 if opt.random_crop else 0)
+logger = Logger(opt.n_epochs, len(dataloader),opt.batchSize,"GF")
 ###################################
 
 ###### Training ######
 for epoch in range(opt.epoch, opt.n_epochs):
     for i, batch in enumerate(dataloader):
         # Set model input
-        real_A = Variable(input_A.copy_(batch['day']))
+        real_A = Variable(input_A.copy_(batch['day'][0])).to(device)
         real_A_orig = batch['day_orig']
-        real_B = Variable(input_B.copy_(batch['night']))
+        real_B = Variable(input_B.copy_(batch['night'][0])).to(device)
         target=batch["targets"]
 
-        ###### Generators A2B and B2A ######
-        optimizer_G.zero_grad()
+        ###### Generators A2B and B2A and fasterRcnn######
+        optimizer_G_fasterRcnn.zero_grad()
 
         # Identity loss
         # G_A2B(B) should equal B if real B is fed
@@ -145,12 +146,18 @@ for epoch in range(opt.epoch, opt.n_epochs):
 
         recovered_B = netG_A2B(fake_A)
         loss_cycle_BAB = criterion_cycle(recovered_B, real_B)*10.0
-
+        
+        # fasterRcnn loss
+        fake_B_orig = 0.5*(netG_A2B(real_A_orig[0].unsqueeze(0)).data + 1.0)
+        output=fasterRcnn([fake_B_orig.squeeze(0)], batch["targets"])
+        loss_fasterRcnn=0
+        for loss_name in output:
+            loss_fasterRcnn+=output[loss_name]
         # Total loss
-        loss_G = loss_identity_A + loss_identity_B + loss_GAN_A2B + loss_GAN_B2A + loss_cycle_ABA + loss_cycle_BAB
+        loss_G = loss_identity_A + loss_identity_B + loss_GAN_A2B + loss_GAN_B2A + loss_cycle_ABA + loss_cycle_BAB+sum(loss_fasterRcnn)
         loss_G.backward()
         
-        optimizer_G.step()
+        optimizer_G_fasterRcnn.step()
         ###################################
 
         ###### Discriminator A ######
@@ -192,22 +199,21 @@ for epoch in range(opt.epoch, opt.n_epochs):
         ###################################
         
         ######fasterRcnn##########
-        optimizer_fasterRcnn.zero_grad()
-        fake_B = 0.5*(netG_A2B(real_A_orig).data + 1.0)###############################################################
-        print(fake_B)
-        output=fasterRcnn(fake_B, batch["targets"])
-        loss_fasterRcnn=0
-        for loss_name in output:
-            loss_fasterRcnn+=output[loss_name]
-        loss_fasterRcnn.backward()
-        optimizer_fasterRcnn.step()
+#         optimizer_fasterRcnn.zero_grad()
+#         with torch.no_grad():
+#             fake_B = 0.5*(netG_A2B(real_A_orig[0].unsqueeze(0)).data + 1.0)
+#         output=fasterRcnn([fake_B.squeeze(0)], batch["targets"])
+#         loss_fasterRcnn=0
+#         for loss_name in output:
+#             loss_fasterRcnn+=output[loss_name]
+#         loss_fasterRcnn.backward(loss_fasterRcnn.clone().detach())
+#         optimizer_fasterRcnn.step()
         ###################################
         logger.log({'loss_G': loss_G, 'loss_G_identity': (loss_identity_A + loss_identity_B), 'loss_G_GAN': (loss_GAN_A2B + loss_GAN_B2A),
-                    'loss_G_cycle': (loss_cycle_ABA + loss_cycle_BAB), 'loss_D': (loss_D_A + loss_D_B),'loss_fasterRcnn':loss_fasterRcnn}, 
+                    'loss_G_cycle': (loss_cycle_ABA + loss_cycle_BAB), 'loss_D': (loss_D_A + loss_D_B),'loss_fasterRcnn':sum(loss_fasterRcnn)}, 
                     images={'real_A': real_A, 'real_B': real_B, 'fake_A': fake_A, 'fake_B': fake_B})
-
     # Update learning rates
-    lr_scheduler_G.step()
+    lr_scheduler_G_fasterRcnn.step()
     lr_scheduler_D_A.step()
     lr_scheduler_D_B.step()
 

@@ -14,12 +14,11 @@ def tensor2image(tensor):
     return image.astype(np.uint8)
 
 class Logger():
-    def __init__(self, n_epochs, batches_epoch,batchSize,size,random_crop):
+    def __init__(self, n_epochs, batches_epoch,batchSize,name):
         # self.viz = Visdom()
         self.n_epochs = n_epochs
         self.batches_epoch = batches_epoch
         self.batchSize=batchSize
-        self.size=size
         self.epoch = 1
         self.batch = 1
         self.start_time=time.time()
@@ -28,7 +27,7 @@ class Logger():
         self.losses = {}
         self.loss_windows = {}
         self.image_windows = {}
-        self.txt=open('./output/log/cycleGAN_%d_%d_%d_%d.txt'%(self.n_epochs,self.batchSize,self.size,random_crop), 'w')
+        self.txt=open('./output/log/%s.txt'%name, 'w')
 
 
     def log(self, losses=None, images=None):

@@ -1,0 +1,1 @@
+python3 main/cycleGAN_fasterRcnn_train.py --n_epochs 50 --batchSize 1 --size 256 --dataroot ./data/images/train --labelroot ./data/labels/train/day.json --decay_epoch 25 --random_crop True --cuda

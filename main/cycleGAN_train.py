@@ -103,7 +103,7 @@ dataloader = DataLoader(ImageDatasetGAN(opt.dataroot, transforms_=transforms_, u
                         batch_size=opt.batchSize, shuffle=True, num_workers=opt.n_cpu,drop_last=True)
 
 # Loss plot
-logger = Logger(opt.n_epochs, len(dataloader),opt.batchSize,opt.size,1 if opt.random_crop else 0)
+logger = Logger(opt.n_epochs, len(dataloader),opt.batchSize,"cycleGan")
 ###################################
 
 ###### Training ######
@@ -194,9 +194,9 @@ for epoch in range(opt.epoch, opt.n_epochs):
     lr_scheduler_D_B.step()
 
     # Save models checkpoints
-    torch.save(netG_A2B.state_dict(), 'output/weight/netG_A2B_%d_%d_%d_%d.pth'%(opt.n_epochs,opt.batchSize,opt.size,1 if opt.random_crop else 0))
-    torch.save(netG_B2A.state_dict(), 'output/weight/netG_B2A_%d_%d_%d_%d.pth'%(opt.n_epochs,opt.batchSize,opt.size,1 if opt.random_crop else 0))
-    torch.save(netD_A.state_dict(), 'output/weight/netD_A_%d_%d_%d_%d.pth'%(opt.n_epochs,opt.batchSize,opt.size,1 if opt.random_crop else 0))
-    torch.save(netD_B.state_dict(), 'output/weight/netD_B_%d_%d_%d_%d.pth'%(opt.n_epochs,opt.batchSize,opt.size,1 if opt.random_crop else 0))
+    torch.save(netG_A2B.state_dict(), 'output/weight/netG_A2B.pth')
+    torch.save(netG_B2A.state_dict(), 'output/weight/netG_B2A.pth')
+    torch.save(netD_A.state_dict(), 'output/weight/netD_A.pth')
+    torch.save(netD_B.state_dict(), 'output/weight/netD_B.pth')
 ###################################
 logger.close()
